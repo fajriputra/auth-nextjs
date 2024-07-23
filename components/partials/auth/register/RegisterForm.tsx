@@ -47,6 +47,8 @@ const RegisterForm = () => {
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
     setAlertMessage({ message: "", status: undefined });
 
+    console.log(values, "values");
+
     startTransition(() => {
       register(values).then((data) => {
         setAlertMessage({
@@ -61,12 +63,26 @@ const RegisterForm = () => {
     <AuthCardWrapper
       label="Create an account"
       button_text="Already have an account?"
-      button_url="/auth/register"
+      button_url="/auth/login"
       isShowSocial
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
+            <FormField
+              disabled={isPending}
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="John Doe" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               disabled={isPending}
               control={form.control}
