@@ -47,8 +47,6 @@ const RegisterForm = () => {
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
     setAlertMessage({ message: "", status: undefined });
 
-    console.log(values, "values");
-
     startTransition(() => {
       register(values).then((data) => {
         setAlertMessage({

@@ -1,10 +1,13 @@
 "use server";
 
 import * as z from "zod";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+import { AuthError } from "next-auth";
 
-import { LoginSchema, RegisterSchema } from "../models/auth.model";
+import { LoginSchema, RegisterSchema } from "@/features/auth/models/auth.model";
 import { db } from "@/lib/db";
+import { signIn } from "@/auth";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validateFields = LoginSchema.safeParse(values);
@@ -13,7 +16,26 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
     return { message: "Invalid fields!", status: "error" };
   }
 
-  return { message: "Successfully logged in", status: "success" };
+  const { email, password } = validateFields.data;
+
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      redirectTo: DEFAULT_LOGIN_REDIRECT,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { message: "Invalid credentials", status: "error" };
+        default:
+          return { message: "Oops, An error occurred", status: "error" };
+      }
+    }
+
+    throw error;
+  }
 };
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {

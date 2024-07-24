@@ -23,17 +23,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components//ui/button";
 
 import { AuthCardWrapper } from "@/components/partials/auth";
-import { FormAlertMessage } from "@/components/shared/FormAlertMessage";
+// import { FormAlertMessage } from "@/components/shared/FormAlertMessage";
 
 const LoginForm = () => {
   const [isPending, startTransition] = useTransition();
-  const [alertMessage, setAlertMessage] = useState<{
-    message: string;
-    status: TBaseStatus;
-  }>({
-    message: "",
-    status: undefined,
-  });
+  // const [alertMessage, setAlertMessage] = useState<{
+  //   message: string;
+  //   status: TBaseStatus;
+  // }>({
+  //   message: "",
+  //   status: undefined,
+  // });
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -44,14 +44,15 @@ const LoginForm = () => {
   });
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    setAlertMessage({ message: "", status: undefined });
+    // setAlertMessage({ message: "", status: undefined });
 
     startTransition(() => {
       login(values).then((data) => {
-        setAlertMessage({
-          message: data.message,
-          status: data.status as TBaseStatus,
-        });
+        console.log(data, "data");
+        // setAlertMessage({
+        //   message: data.message,
+        //   status: data.status as TBaseStatus,
+        // });
       });
     });
   };
@@ -99,10 +100,10 @@ const LoginForm = () => {
               )}
             />
           </div>
-          <FormAlertMessage
+          {/* <FormAlertMessage
             status={alertMessage.status}
             message={alertMessage.message}
-          />
+          /> */}
           <Button className="w-full" type="submit" disabled={isPending}>
             Log in
           </Button>
