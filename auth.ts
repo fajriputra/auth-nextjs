@@ -6,6 +6,20 @@ import { UserRole } from "@prisma/client";
 import authConfig from "@/auth.config";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
+  events: {
+    linkAccount: async ({ user }) => {
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: new Date(),
+        },
+      });
+    },
+  },
   callbacks: {
     jwt: async ({ token }) => {
       if (!token.sub) return token;

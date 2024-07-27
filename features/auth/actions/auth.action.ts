@@ -27,7 +27,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
-        case "CredentialsSignin":
+        case "CallbackRouteError":
           return { message: "Invalid credentials", status: "error" };
         default:
           return { message: "Oops, An error occurred", status: "error" };

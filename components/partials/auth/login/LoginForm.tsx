@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -23,17 +24,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components//ui/button";
 
 import { AuthCardWrapper } from "@/components/partials/auth";
-// import { FormAlertMessage } from "@/components/shared/FormAlertMessage";
+import { FormAlertMessage } from "@/components/shared/FormAlertMessage";
 
 const LoginForm = () => {
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  // const [alertMessage, setAlertMessage] = useState<{
-  //   message: string;
-  //   status: TBaseStatus;
-  // }>({
-  //   message: "",
-  //   status: undefined,
-  // });
+  const [alertMessage, setAlertMessage] = useState<{
+    message: string | undefined;
+    status: TBaseStatus;
+  }>({
+    message: "",
+    status: undefined,
+  });
+
+  const urlError: { message: string | undefined; status: TBaseStatus } | null =
+    searchParams.get("error") === "OAuthAccountNotLinked"
+      ? {
+          message: "Email is already used with different provider.",
+          status: "error",
+        }
+      : null;
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -44,15 +54,14 @@ const LoginForm = () => {
   });
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    // setAlertMessage({ message: "", status: undefined });
+    setAlertMessage({ message: "", status: undefined });
 
     startTransition(() => {
       login(values).then((data) => {
-        console.log(data, "data");
-        // setAlertMessage({
-        //   message: data.message,
-        //   status: data.status as TBaseStatus,
-        // });
+        setAlertMessage({
+          message: data?.message,
+          status: data?.status as TBaseStatus,
+        });
       });
     });
   };
@@ -100,10 +109,10 @@ const LoginForm = () => {
               )}
             />
           </div>
-          {/* <FormAlertMessage
-            status={alertMessage.status}
-            message={alertMessage.message}
-          /> */}
+          <FormAlertMessage
+            status={alertMessage.status || urlError?.status}
+            message={alertMessage.message || urlError?.message}
+          />
           <Button className="w-full" type="submit" disabled={isPending}>
             Log in
           </Button>
