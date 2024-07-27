@@ -8,6 +8,7 @@ import { LoginSchema, RegisterSchema } from "@/features/auth/models/auth.model";
 import { db } from "@/lib/db";
 import { signIn } from "@/auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
+import { generateVerificationToken } from "@/lib/utils";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validateFields = LoginSchema.safeParse(values);
@@ -17,6 +18,21 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   const { email, password } = validateFields.data;
+
+  const existingUser = await db.user.findUnique({ where: { email } });
+
+  if (!existingUser || !existingUser?.email || !existingUser?.password) {
+    return { message: "Email doesn't exist", status: "error" };
+  }
+
+  if (!existingUser?.emailVerified) {
+    await generateVerificationToken(existingUser.email);
+
+    return {
+      message: "Successfully sending email verification",
+      status: "success",
+    };
+  }
 
   try {
     await signIn("credentials", {
@@ -63,5 +79,14 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     },
   });
 
-  return { message: "Successfully created account", status: "success" };
+  const verifToken = await generateVerificationToken(email);
+
+  // Send email verification
+  console.log("Verification token", verifToken);
+
+  return {
+    message:
+      "Successfully created account. Please check your email to confirmation",
+    status: "success",
+  };
 };
