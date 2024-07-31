@@ -8,7 +8,7 @@ import { LoginSchema, RegisterSchema } from "@/features/auth/models/auth.model";
 import { db } from "@/lib/db";
 import { signIn } from "@/auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-import { generateVerificationToken } from "@/lib/utils";
+import { generateVerificationToken, sendVerificationEmail } from "@/lib/utils";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validateFields = LoginSchema.safeParse(values);
@@ -26,11 +26,9 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   if (!existingUser?.emailVerified) {
-    await generateVerificationToken(existingUser.email);
-
     return {
-      message: "Successfully sending email verification",
-      status: "success",
+      message: `${existingUser.email} is not verified. Please verify your account to login`,
+      status: "error",
     };
   }
 
@@ -82,11 +80,11 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const verifToken = await generateVerificationToken(email);
 
   // Send email verification
-  console.log("Verification token", verifToken);
+  await sendVerificationEmail(verifToken.email, verifToken.token);
 
   return {
     message:
-      "Successfully created account. Please check your email to confirmation",
+      "Successfully created account. Please check your email to verify account",
     status: "success",
   };
 };

@@ -27,9 +27,15 @@ const FormAlertMessage = ({ message, status }: IFormAlertMessageProps) => {
         }
       )}
     >
-      {status === "warning" && <ExclamationTriangleIcon className="size-4" />}
-      {status === "error" && <Cross1Icon className="size-4" />}
-      {status === "success" && <CheckCircledIcon className="size-4" />}
+      {status === "warning" && (
+        <ExclamationTriangleIcon className="min-w-4 min-h-4 max-w-4 max-h-4" />
+      )}
+      {status === "error" && (
+        <Cross1Icon className="min-w-4 min-h-4 max-w-4 max-h-4" />
+      )}
+      {status === "success" && (
+        <CheckCircledIcon className="min-w-4 min-h-4 max-w-4 max-h-4" />
+      )}
       <p>{message}</p>
     </div>
   );
