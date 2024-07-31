@@ -61,18 +61,23 @@ export const generateVerificationToken = async (email: string) => {
   return verificationToken;
 };
 
-export const sendVerificationEmail = async (email: string, token: string) => {
+export const sendEmail = async (args: {
+  email: string;
+  token: string;
+  path: string;
+  subject: string;
+}) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
-  const qToken = token ? `?token=${token}` : "";
+  const qToken = args.token ? `?token=${args.token}` : "";
 
-  const confirmationLink = `http://localhost:3000/auth/verify-email${qToken}`;
+  const resultLink = `http://localhost:3000${args.path}${qToken}`;
 
   await resend.emails.send({
     from: "onboarding@resend.dev",
-    to: email,
-    subject: "Verify your email",
-    html: `<a href="${confirmationLink}">Click here to verify your email</a>`,
+    to: args.email,
+    subject: args.subject,
+    html: `<a href="${resultLink}">Click here to ${args.subject.toLowerCase()}</a>`,
   });
 };
 
@@ -126,4 +131,57 @@ export const newVerification = async (token: string) => {
     message: "Successfully email verified",
     status: "success",
   };
+};
+
+export const getResetPasswordTokenByEmail = async (email: string) => {
+  try {
+    const resetPasswordToken = await db.resetPasswordToken.findFirst({
+      where: {
+        email,
+      },
+    });
+
+    return resetPasswordToken;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getResetPasswordTokenByToken = async (token: string) => {
+  try {
+    const resetPasswordToken = await db.resetPasswordToken.findUnique({
+      where: {
+        token,
+      },
+    });
+
+    return resetPasswordToken;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const generateResetPasswordToken = async (email: string) => {
+  const token = uuiv4();
+  const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
+
+  const existingToken = await getResetPasswordTokenByEmail(email);
+
+  if (existingToken) {
+    await db.resetPasswordToken.delete({
+      where: {
+        id: existingToken.id,
+      },
+    });
+  }
+
+  const resetPasswordToken = await db.resetPasswordToken.create({
+    data: {
+      email,
+      token,
+      expires,
+    },
+  });
+
+  return resetPasswordToken;
 };

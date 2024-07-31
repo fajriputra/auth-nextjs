@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { LoginSchema } from "@/features/auth/models/auth.model";
+import { ResetPasswordSchema } from "@/features/auth/models/auth.model";
 import { TBaseStatus } from "@/types";
 
-import { login } from "@/features/auth/actions/auth.action";
+import { resetPassword } from "@/features/auth/actions/auth.action";
 
 import {
   Form,
@@ -27,8 +25,7 @@ import { Button } from "@/components//ui/button";
 import { AuthCardWrapper } from "@/components/partials/auth";
 import { FormAlertMessage } from "@/components/shared/FormAlertMessage";
 
-const LoginForm = () => {
-  const searchParams = useSearchParams();
+const ResetPasswordForm = () => {
   const [isPending, startTransition] = useTransition();
   const [alertMessage, setAlertMessage] = useState<{
     message: string | undefined;
@@ -38,27 +35,18 @@ const LoginForm = () => {
     status: undefined,
   });
 
-  const urlError: { message: string | undefined; status: TBaseStatus } | null =
-    searchParams.get("error") === "OAuthAccountNotLinked"
-      ? {
-          message: "Email is already used with different provider.",
-          status: "error",
-        }
-      : null;
-
-  const form = useForm<z.infer<typeof LoginSchema>>({
-    resolver: zodResolver(LoginSchema),
+  const form = useForm<z.infer<typeof ResetPasswordSchema>>({
+    resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+  const onSubmit = (values: z.infer<typeof ResetPasswordSchema>) => {
     setAlertMessage({ message: "", status: undefined });
 
     startTransition(() => {
-      login(values).then((data) => {
+      resetPassword(values).then((data) => {
         setAlertMessage({
           message: data?.message,
           status: data?.status as TBaseStatus,
@@ -69,10 +57,9 @@ const LoginForm = () => {
 
   return (
     <AuthCardWrapper
-      label="Welcome back"
-      button_text="Don't have an account?"
-      button_url="/auth/register"
-      isShowSocial
+      label="Forgot your password?"
+      button_text="Back to login"
+      button_url="/auth/login"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -95,35 +82,13 @@ const LoginForm = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              disabled={isPending}
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="******" type="password" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              size="sm"
-              variant="link"
-              asChild
-              className="font-normal px-0 !mt-0"
-            >
-              <Link href="/auth/reset-password">Forgot Password</Link>
-            </Button>
           </div>
           <FormAlertMessage
-            status={alertMessage.status || urlError?.status}
-            message={alertMessage.message || urlError?.message}
+            status={alertMessage.status}
+            message={alertMessage.message}
           />
           <Button className="w-full" type="submit" disabled={isPending}>
-            Log in
+            Send reset link
           </Button>
         </form>
       </Form>
@@ -131,4 +96,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default ResetPasswordForm;
